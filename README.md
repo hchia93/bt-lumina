@@ -156,30 +156,7 @@ bt-lumina/
 └── LICENSE                # MIT License
 ```
 
-## Dependencies
-
-### **Core Dependencies**
-- **qtbase**: Qt6 core functionality and widgets
-- **qtconnectivity**: Qt6 Bluetooth connectivity module
-
-### **Build Dependencies**
-- **CMake**: 3.16 or higher
-- **vcpkg**: Microsoft's C++ package manager
-- **Visual Studio 2022**: With C++ workload
-
-## Supported Devices
-
-### Smart Light Bulbs
-- **IKEA TRÅDFRI**: Zigbee over Bluetooth
-- **Philips Hue**: Bluetooth Low Energy
-- **Generic BLE Bulbs**: Standard BLE protocols
-
-### Future Device Support
-- CCTV cameras with Bluetooth connectivity
-- Bluetooth controllers and input devices
-- Other IoT devices with BLE capabilities
-
-## Development Setup
+## First Setup
 
 ### Prerequisites
 - Windows 10/11 with Bluetooth support
@@ -187,20 +164,54 @@ bt-lumina/
 - Git
 - CMake 3.16+
 
-### Quick Start
-1. **Install Dependencies**:
-   ```bash
-   .\DependencyInstaller.bat
-   ```
+### Step 1: Install Required Dependencies
 
-2. **Generate Visual Studio Solution**:
-   ```bash
-   .\VisualStudioSolutionGenerator.bat
-   ```
+#### 1.1 Install vcpkg and Basic Dependencies (Automatic)
+Run the following script to install most dependencies (if vcpkg is not installed, it will be downloaded automatically):
 
-3. **Build and Run**:
-   - Open `generated-vs/bt-lumina.sln`
-   - Build and run the project
+```cmd
+DependencyInstaller.bat
+```
+
+#### 1.2 Manually Install Qt6 Dependencies (Classic Mode)
+Due to known issues with vcpkg manifest mode and Qt6, you **must** manually install Qt6 dependencies using classic mode:
+
+```cmd
+C:\vcpkg\vcpkg.exe install qtbase qtbase:x64-windows --classic
+C:\vcpkg\vcpkg.exe install qtconnectivity qtconnectivity:x64-windows --classic
+```
+
+> ⚠️ **Note:** If your vcpkg is not installed at `C:\vcpkg`, adjust the path accordingly.
+
+### Step 2: Generate the Visual Studio Solution
+Run the following script to generate the Visual Studio solution (this will create the `generated-vs` directory):
+
+```cmd
+VisualStudioSolutionGenerator.bat
+```
+
+### Step 3: Build and Run
+Open the generated solution at:
+- `generated-vs/bt-lumina.sln`
+
+Press **F5** to build and run the application.
+
+> **⚠️ Important First-Time Setup**
+> The first time you open the solution, you may need to manually set the startup project:
+> 1. In **Solution Explorer**, right-click on `bt-lumina`.
+> 2. Select **"Set as StartUp Project"** from the menu.
+> You only need to do this once.
+
+### Troubleshooting
+- **CMake cannot find Qt6Config.cmake?**
+  - Make sure you have manually installed Qt6 dependencies in classic mode as described above.
+  - When generating the solution, ensure you use these CMake parameters if building manually:
+    ```
+    -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+    -DCMAKE_PREFIX_PATH=C:/vcpkg/installed/x64-windows
+    ```
+
+For more help, see the [vcpkg documentation](https://learn.microsoft.com/vcpkg/) or open an issue in this repository.
 
 ## Features
 

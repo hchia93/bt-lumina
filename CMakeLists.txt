@@ -33,6 +33,15 @@ add_executable(${PROJECT_NAME}
     ${RESOURCES}
 )
 
+# Copy resources folder to build directory
+add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources
+    ${CMAKE_BINARY_DIR}/resources
+    COMMENT "Copying resources folder to build directory"
+)
+
 # Link Qt6 libraries including Bluetooth
 target_link_libraries(${PROJECT_NAME} 
     Qt6::Core
