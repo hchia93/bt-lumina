@@ -74,4 +74,34 @@ message(STATUS "Project: ${PROJECT_NAME}")
 message(STATUS "Version: ${PROJECT_VERSION}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Output Directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") 
+message(STATUS "Output Directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+# === 自动复制 Qt DLL 和平台插件 ===
+if(WIN32)
+    # vcpkg 安装路径和 triplet
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(VCPKG_INSTALLED_DIR "$ENV{VCPKG_ROOT}/installed")
+    else()
+        set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed")
+    endif()
+    if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+        set(VCPKG_TARGET_TRIPLET "x64-windows")
+    endif()
+
+    set(QT_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+    set(QT_PLUGINS_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/Qt6/plugins/platforms")
+    set(OUTPUT_PLATFORMS_DIR "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QT_BIN_DIR}/Qt6Core.dll"
+            "${QT_BIN_DIR}/Qt6Gui.dll"
+            "${QT_BIN_DIR}/Qt6Widgets.dll"
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_PLATFORMS_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QT_PLUGINS_DIR}/qwindows.dll"
+            "${OUTPUT_PLATFORMS_DIR}/qwindows.dll"
+        COMMENT "自动复制 Qt DLL 和 qwindows.dll 到输出目录"
+    )
+endif() 
