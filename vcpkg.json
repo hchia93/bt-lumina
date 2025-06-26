@@ -1,0 +1,10 @@
+{
+  "name": "bt-lumina",
+  "version": "1.0.0",
+  "description": "Bluetooth Lumina - Qt-based Bluetooth Smart Device Controller",
+  "homepage": "https://github.com/your-username/bt-lumina",
+  "dependencies": [
+    "qtbase",
+    "qtconnectivity"
+  ]
+} 
