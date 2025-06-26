@@ -6,5 +6,6 @@
   "dependencies": [
     "qtbase",
     "qtconnectivity"
-  ]
+  ],
+  "builtin-baseline" : "9842d45d567ba785627932cca506615b4e43ae6e"
 } 
