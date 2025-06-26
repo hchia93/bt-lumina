@@ -11,12 +11,6 @@ on:
       - 'CMakeLists.txt'
       - 'src/**'
       - 'resources/**'
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - '.gitattributes'
-      - 'README.md'
-      - 'LICENSE'
   pull_request:
     branches: [ main ]
     paths:
@@ -27,12 +21,6 @@ on:
       - 'CMakeLists.txt'
       - 'src/**'
       - 'resources/**'
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - '.gitattributes'
-      - 'README.md'
-      - 'LICENSE'
 
 jobs:
   build:
