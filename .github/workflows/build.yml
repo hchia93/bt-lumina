@@ -1,0 +1,61 @@
+name: Build (Windows)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.h'
+      - '**.cpp'
+      - '**.json'
+      - '**.bat'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'resources/**'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.h'
+      - '**.cpp'
+      - '**.json'
+      - '**.bat'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'resources/**'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'README.md'
+      - 'LICENSE'
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      
+    - name: Build with CMake
+      run: |
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A x64
+        cmake --build build --config Debug
+        
+    - name: Verify build
+      run: |
+        if (Test-Path "build\Debug\bt-lumina.exe") {
+          echo "✅ Build successful"
+        } else {
+          echo "❌ Build failed"
+          exit 1
+        } 
