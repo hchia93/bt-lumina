@@ -4,8 +4,7 @@
   "description": "Bluetooth Lumina - ImGui-based Bluetooth Smart Device Controller",
   "homepage": "https://github.com/your-username/bt-lumina",
   "dependencies": [
-    "glfw3",
-    "glad"
+    "glfw3"
   ],
   "builtin-baseline": "0cf34c184ce990471435b5b9c92edcf7424930b1"
 } 
