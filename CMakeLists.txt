@@ -64,8 +64,8 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/resources)
     )
 endif()
 
-# Link GLFW3, glad, and OpenGL (ImGui is header-only)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad OpenGL::GL)
+# Link GLFW3 and OpenGL (ImGui is header-only)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL)
 
 # Add compile definitions for ImGui configuration
 target_compile_definitions(${PROJECT_NAME} PRIVATE

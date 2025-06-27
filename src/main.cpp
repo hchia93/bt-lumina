@@ -1,10 +1,18 @@
 #include "imconfig.h"
-#include <glad/glad.h>
+#include <windows.h>
+#include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <stdio.h>
+
+// OpenGL function declarations for Windows
+extern "C" {
+    void glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+    void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+    void glClear(GLbitfield mask);
+}
 
 int main(void)
 {
@@ -16,11 +24,8 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#if defined(__APPLE__)
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "BT-Lumina", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "BT-Lumina - Bluetooth Controller", NULL, NULL);
     if (!window) {
         fprintf(stderr, "Failed to create GLFW window!\n");
         glfwTerminate();
@@ -30,48 +35,25 @@ int main(void)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
-    if (!gladLoadGL()) {
-        fprintf(stderr, "Failed to initialize glad!\n");
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
-
     IMGUI_CHECKVERSION();
-    if (!ImGui::CreateContext()) {
-        fprintf(stderr, "Failed to create ImGui context!\n");
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
+    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) {
-        fprintf(stderr, "Failed to initialize ImGui_ImplGlfw!\n");
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
-    if (!ImGui_ImplOpenGL3_Init("#version 330")) {
-        fprintf(stderr, "Failed to initialize ImGui_ImplOpenGL3!\n");
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
 
-        // Start the ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Create main window with tabs
-        ImGui::Begin("BT-Lumina Main Menu", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        // Main window
+        ImGui::Begin("BT-Lumina", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         
         if (ImGui::BeginTabBar("MainTabs"))
         {
@@ -80,20 +62,20 @@ int main(void)
                 ImGui::Text("Bluetooth Device Discovery");
                 ImGui::Separator();
                 
-                if (ImGui::Button("Scan for Devices"))
+                if (ImGui::Button("Scan for Devices", ImVec2(120, 0)))
                 {
-                    // TODO: Implement device scanning
+                    // TODO: Add Bluetooth scanning
                 }
                 
                 ImGui::SameLine();
-                if (ImGui::Button("Stop Scanning"))
+                if (ImGui::Button("Stop Scan", ImVec2(120, 0)))
                 {
-                    // TODO: Implement stop scanning
+                    // TODO: Stop scanning
                 }
                 
                 ImGui::Separator();
                 ImGui::Text("Discovered Devices:");
-                ImGui::BeginChild("DeviceList", ImVec2(0, 200), true);
+                ImGui::BeginChild("DeviceList", ImVec2(400, 200), true);
                 ImGui::Text("No devices found");
                 ImGui::EndChild();
                 
@@ -115,7 +97,7 @@ int main(void)
                 static float color[3] = {1.0f, 1.0f, 1.0f};
                 ImGui::ColorEdit3("Color", color);
                 
-                if (ImGui::Button("Apply Settings"))
+                if (ImGui::Button("Apply Settings", ImVec2(120, 0)))
                 {
                     // TODO: Send commands to device
                 }
@@ -135,13 +117,13 @@ int main(void)
                 ImGui::SliderInt("Scan Timeout (seconds)", &scan_timeout, 5, 30);
                 
                 ImGui::Separator();
-                if (ImGui::Button("Save Settings"))
+                if (ImGui::Button("Save Settings", ImVec2(120, 0)))
                 {
                     // TODO: Save settings
                 }
                 
                 ImGui::SameLine();
-                if (ImGui::Button("Reset to Defaults"))
+                if (ImGui::Button("Reset to Defaults", ImVec2(120, 0)))
                 {
                     // TODO: Reset settings
                 }
