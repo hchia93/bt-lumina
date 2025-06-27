@@ -1,11 +1,11 @@
 {
   "name": "bt-lumina",
   "version": "1.0.0",
-  "description": "Bluetooth Lumina - Qt-based Bluetooth Smart Device Controller",
+  "description": "Bluetooth Lumina - ImGui-based Bluetooth Smart Device Controller",
   "homepage": "https://github.com/your-username/bt-lumina",
   "dependencies": [
-    "imgui",
-    "glfw3"
+    "glfw3",
+    "glad"
   ],
-  "builtin-baseline": "b02e341c927f16d991edbd915d8ea43eac52096c"
+  "builtin-baseline": "0cf34c184ce990471435b5b9c92edcf7424930b1"
 } 
