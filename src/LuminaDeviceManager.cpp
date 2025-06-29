@@ -410,7 +410,7 @@ float LuminaDeviceManager::GetScanProgress() const
     
     auto now = std::chrono::steady_clock::now();
     float elapsed = std::chrono::duration<float>(now - m_ScanStartTime).count();
-    return std::min(elapsed / m_ScanDuration, 1.0f);
+    return std::min(elapsed / m_ScanCooldown, 1.0f);
 }
 
 void LuminaDeviceManager::UpdateScanState()
@@ -419,7 +419,7 @@ void LuminaDeviceManager::UpdateScanState()
     {
         auto now = std::chrono::steady_clock::now();
         float elapsed = std::chrono::duration<float>(now - m_ScanStartTime).count();
-        if (elapsed >= m_ScanDuration)
+        if (elapsed >= m_ScanCooldown)
         {
             m_ScanInProgress = false;
             StopScan();

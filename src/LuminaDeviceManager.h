@@ -75,7 +75,7 @@ private:
     // Scan gating/progress
     bool m_ScanInProgress = false;
     std::chrono::steady_clock::time_point m_ScanStartTime;
-    float m_ScanDuration = 2.0f;
+    float m_ScanCooldown = 1.0f;
 
     std::function<void()> m_OnBeginScanCooldown;
     std::function<void()> m_OnCompleteScanCooldown;

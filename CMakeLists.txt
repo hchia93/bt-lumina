@@ -95,8 +95,11 @@ if(WIN32)
         VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
 
-    # Enable C++/WinRT coroutine support
-    target_link_options(${PROJECT_NAME} PRIVATE /await)
+    # Enable C++/WinRT coroutine support (MSVC only)
+    if(MSVC)
+        target_link_options(${PROJECT_NAME} PRIVATE /await)
+    endif()
+    
     # Link against windowsapp.lib for WinRT APIs
     target_link_libraries(${PROJECT_NAME} PRIVATE windowsapp)
     
