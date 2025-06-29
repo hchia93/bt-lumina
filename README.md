@@ -2,6 +2,8 @@
 
 BT-Lumina is an ImGui-based Bluetooth Smart Device Controller. This project provides a lightweight, cross-platform GUI application for managing Bluetooth devices using ImGui + GLFW3 + OpenGL, eliminating the need for heavy Qt dependencies.
 
+![Preview](preview.png)S
+
 ## Features
 
 - Cross-platform GUI using ImGui + GLFW3 + OpenGL
