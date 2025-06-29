@@ -11,8 +11,6 @@ BT-Lumina is an ImGui-based Bluetooth Smart Device Controller. This project prov
 
 ## Prerequisites
 
-To build and run this project, external dependencies are required. The `DependencyInstaller.bat` script will install them accordingly.
-
 | Dependency | Version/Details | Source |
 |------------|----------------|--------|
 | **ImGui**  | Latest version | https://github.com/ocornut/imgui |
@@ -27,96 +25,57 @@ To build and run this project, external dependencies are required. The `Dependen
 bt-lumina/
 ├── CMakeLists.txt         # CMake build configuration
 ├── vcpkg.json             # Dependency manifest
-├── DependencyInstaller.bat # Installing dependencies
+├── generate.bat           # One-step dependency install & solution generator
 ├── README.md              # This file
 ├── src/                   # Source code
 │   └── main.cpp           # Main application entry point
 └── resources/             # Resource files (if any)
 ```
 
-## Instructions
+## Setup Instructions
 
-### Step 1: Install Required Dependencies
+### 1. Install Dependencies & Generate Visual Studio Solution
 
-Execute the following file to install relevant dependencies:
-
-```cmd
-DependencyInstaller.bat
-```
-
-### Step 2: Configure and Build the Project
-
-You can build the project using CMake directly:
+Run the following script from the project root:
 
 ```cmd
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="<vcpkg-root>/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 17 2022" -A x64
-cmake --build build --config Debug
+generate.bat
 ```
 
-### Step 3: Run the Application
+This will:
+- Check for required tools (Git, vcpkg, CMake)
+- Install all dependencies via vcpkg
+- Generate a Visual Studio solution in the `generated-vs` directory
+
+### 2. Open and Build in Visual Studio
+
+1. Open `generated-vs/bt-lumina.sln` in Visual Studio 2022 or newer.
+2. Build the solution (Ctrl+Shift+B).
+3. Run the application (F5 or Ctrl+F5).
+
+> **Note:** The first time you open the solution, you may need to set `bt-lumina` as the startup project:
+> - In Solution Explorer, right-click `bt-lumina` and select **Set as StartUp Project**.
+
+### 3. Run the Application
 
 After building, run the executable:
 
 ```cmd
-.\build\Debug\bt-lumina.exe
-```
-
-## Alternative Build Methods
-
-### Using Visual Studio Solution Generator
-
-If you prefer using Visual Studio, you can generate a solution:
-
-```cmd
-VisualStudioSolutionGenerator.bat
-```
-
-Then open the generated solution and press **F5** to build and run.
-
-> **⚠️ Important First-Time Setup**
-> The first time you open the solution, you may need to manually set the startup project.
-> 1. In the **Solution Explorer**, **right-click** on `bt-lumina`.
-> 2. Select **"Set as StartUp Project"** from the menu.
->
-> You only need to do this once.
-
-### Manual vcpkg Installation
-
-If you prefer to install dependencies manually:
-
-```cmd
-vcpkg install imgui glfw3
+.\generated-vs\Debug\bt-lumina.exe
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
 1. **vcpkg not found:**
-   - Ensure vcpkg is installed and added to your PATH
-   - Check that `CMAKE_TOOLCHAIN_FILE` points to the correct vcpkg installation
-
+   - Ensure vcpkg is installed and the `VCPKG_ROOT` environment variable is set.
 2. **GLFW/ImGui not found:**
-   - Ensure vcpkg is properly set up
-   - Verify that dependencies are installed: `vcpkg list`
-
+   - Ensure vcpkg is properly set up and dependencies are installed: `vcpkg list`
 3. **Build errors:**
-   - Ensure you have a C++17 compatible compiler
-   - Check that CMake version is >= 3.16
-   - Verify all dependencies are properly installed
-
-### Debug Mode
-
-To build in debug mode:
-
-```cmd
-cmake --build build --config Debug
-```
+   - Ensure you have a C++17 compatible compiler and CMake >= 3.16
 
 ## Configuration
 
 The application can be configured by modifying the source code in `src/main.cpp`:
-
 - Window dimensions and properties
 - ImGui styling and configuration
 - Bluetooth device settings
@@ -124,27 +83,6 @@ The application can be configured by modifying the source code in `src/main.cpp`
 ## Contributing
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Notes
-
-> **⚠️ Migration from Qt6**
-> This project has been migrated from Qt6 to ImGui + GLFW3 + OpenGL for better performance and reduced dependencies. The new implementation provides a more lightweight and portable solution.
-
-## Dependencies
-
-This project uses the following external libraries managed by vcpkg:
-
-- **ImGui**: Immediate mode GUI library for rendering UI elements
-- **GLFW3**: Cross-platform library for creating windows, contexts, and handling input
-- **OpenGL**: Graphics API for rendering (provided by the system)
 
 ## License
 

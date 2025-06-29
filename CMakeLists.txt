@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(bt-lumina VERSION 1.0.0 LANGUAGES CXX)
 
+# Option to hide console window (Windows only)
+option(HIDE_CONSOLE "Hide console window on Windows" ON)
+
 # Set C++ standard for modern embedded development
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,6 +48,9 @@ file(GLOB IMGUI_CORE_SOURCES
     ${imgui_SOURCE_DIR}/imgui_demo.cpp
 )
 
+# Group ImGui core and backend files in Visual Studio filter
+source_group("Source Files\\imgui" FILES ${IMGUI_CORE_SOURCES} ${IMGUI_BACKEND_SOURCES})
+
 # Create executable
 add_executable(${PROJECT_NAME} 
     ${SOURCES}
@@ -87,6 +93,13 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
+    
+    # Hide console window if option is enabled
+    if(HIDE_CONSOLE)
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            WIN32_EXECUTABLE TRUE
+        )
+    endif()
 endif()
 
 # Install rules
@@ -101,4 +114,5 @@ message(STATUS "Project: ${PROJECT_NAME}")
 message(STATUS "Version: ${PROJECT_VERSION}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Output Directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") 
+message(STATUS "Output Directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "Hide Console: ${HIDE_CONSOLE}") 
