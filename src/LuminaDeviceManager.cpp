@@ -9,11 +9,9 @@
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Bluetooth.GenericAttributeProfile.h>
-#include <ppltasks.h>
 
 using namespace winrt;
 using namespace Windows::Devices::Enumeration;
-using namespace concurrency;
 
 LuminaDeviceManager::LuminaDeviceManager()
     : m_IsScanning(false)
@@ -120,15 +118,19 @@ void LuminaDeviceManager::RemoveDevice(const std::string& deviceAddress)
         m_ConnectedDevices.erase(it, m_ConnectedDevices.end());
     }
     // Use WinRT to unpair (remove) the device from the system
-    create_task(DeviceInformation::CreateFromIdAsync(winrt::to_hstring(deviceAddress))).then([](DeviceInformation devInfo)
-    {
-        if (devInfo && devInfo.Pairing().IsPaired())
+    auto asyncOp = DeviceInformation::CreateFromIdAsync(winrt::to_hstring(deviceAddress));
+    asyncOp.Completed([deviceAddress](auto const& op, auto const& status) {
+        if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
         {
-            auto op = devInfo.Pairing().UnpairAsync();
-            op.Completed([](auto const& asyncOp, auto const& status)
+            auto devInfo = op.GetResults();
+            if (devInfo && devInfo.Pairing().IsPaired())
             {
-                // Optionally handle unpair result
-            });
+                auto unpairOp = devInfo.Pairing().UnpairAsync();
+                unpairOp.Completed([](auto const& asyncOp, auto const& status)
+                {
+                    // Optionally handle unpair result
+                });
+            }
         }
     });
 }
@@ -141,31 +143,35 @@ void LuminaDeviceManager::ConnectToDevice(const std::string& deviceAddress)
         // Use WinRT to pair (connect) the device
         std::string id = device->address;
         auto idH = winrt::to_hstring(id);
-        create_task(DeviceInformation::CreateFromIdAsync(idH)).then([this, device](DeviceInformation devInfo)
-        {
-            if (devInfo && devInfo.Pairing().CanPair() && !devInfo.Pairing().IsPaired())
+        auto asyncOp = DeviceInformation::CreateFromIdAsync(idH);
+        asyncOp.Completed([this, device](auto const& op, auto const& status) {
+            if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
             {
-                auto op = devInfo.Pairing().PairAsync();
-                op.Completed([this, device](auto const& asyncOp, auto const& status)
+                auto devInfo = op.GetResults();
+                if (devInfo && devInfo.Pairing().CanPair() && !devInfo.Pairing().IsPaired())
                 {
-                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
+                    auto pairOp = devInfo.Pairing().PairAsync();
+                    pairOp.Completed([this, device](auto const& asyncOp, auto const& status)
                     {
-                        auto result = asyncOp.GetResults();
-                        if (result.Status() == Windows::Devices::Enumeration::DevicePairingResultStatus::Paired ||
-                            result.Status() == Windows::Devices::Enumeration::DevicePairingResultStatus::AlreadyPaired)
+                        if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
                         {
-                            device->isConnected = true;
-                            device->isPaired = true;
-                            // Add to connected devices list if not already there
-                            auto it = std::find_if(m_ConnectedDevices.begin(), m_ConnectedDevices.end(),
-                                [device](const Lumina::BluetoothDevice& d) { return d.address == device->address; });
-                            if (it == m_ConnectedDevices.end())
+                            auto result = asyncOp.GetResults();
+                            if (result.Status() == Windows::Devices::Enumeration::DevicePairingResultStatus::Paired ||
+                                result.Status() == Windows::Devices::Enumeration::DevicePairingResultStatus::AlreadyPaired)
                             {
-                                m_ConnectedDevices.push_back(*device);
+                                device->isConnected = true;
+                                device->isPaired = true;
+                                // Add to connected devices list if not already there
+                                auto it = std::find_if(m_ConnectedDevices.begin(), m_ConnectedDevices.end(),
+                                    [device](const Lumina::BluetoothDevice& d) { return d.address == device->address; });
+                                if (it == m_ConnectedDevices.end())
+                                {
+                                    m_ConnectedDevices.push_back(*device);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         });
     }
