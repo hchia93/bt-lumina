@@ -64,32 +64,7 @@ After building, run the executable:
 .\generated-vs\Debug\bt-lumina.exe
 ```
 
-## Troubleshooting
-
-1. **vcpkg not found:**
-   - Ensure vcpkg is installed and the `VCPKG_ROOT` environment variable is set.
-2. **GLFW/ImGui not found:**
-   - Ensure vcpkg is properly set up and dependencies are installed: `vcpkg list`
-3. **Build errors:**
-   - Ensure you have a C++17 compatible compiler and CMake >= 3.16
-
-## Configuration
-
-The application can be configured by modifying the source code in `src/main.cpp`:
-- Window dimensions and properties
-- ImGui styling and configuration
-- Bluetooth device settings
-
-## Contributing
-
-Contributions are welcome! Please feel free to open issues or submit pull requests.
-
-## License
-
-This project is open source. Please check the LICENSE file for details.
-
----
-
+## References
 For more information about the technologies used:
 - [ImGui Documentation](https://github.com/ocornut/imgui)
 - [GLFW Documentation](https://www.glfw.org/documentation.html)
