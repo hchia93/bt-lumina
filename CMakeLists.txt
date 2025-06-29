@@ -96,7 +96,7 @@ if(WIN32)
     )
 
     # Enable C++/WinRT coroutine support
-    target_compile_options(${PROJECT_NAME} PRIVATE /await)
+    target_link_options(${PROJECT_NAME} PRIVATE /await)
     # Link against windowsapp.lib for WinRT APIs
     target_link_libraries(${PROJECT_NAME} PRIVATE windowsapp)
     
