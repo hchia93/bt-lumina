@@ -6,7 +6,7 @@ project(bt-lumina VERSION 1.0.0 LANGUAGES CXX)
 option(HIDE_CONSOLE "Hide console window on Windows" ON)
 
 # Set C++ standard for modern embedded development
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include FetchContent
