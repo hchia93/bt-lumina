@@ -9,15 +9,18 @@
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Enumeration.h>
 
-struct BluetoothDevice
+namespace Lumina
 {
-    std::string name;
-    std::string address;
-    bool isConnected;
-    bool isPaired;
-    int signalStrength; // RSSI value. Not available in this API
-    std::string deviceType; // Ideally should be enum after knowing all possible device type
-};
+    struct BluetoothDevice
+    {
+        std::string name;
+        std::string address;
+        bool isConnected;
+        bool isPaired;
+        int signalStrength; // RSSI value. Not available in this API
+        std::string deviceType; // Ideally should be enum after knowing all possible device type
+    };
+}
 
 class LuminaDeviceManager
 {
@@ -33,18 +36,18 @@ public:
     void Tick(); // Call this every frame
     
     // Device management
-    void AddDevice(const BluetoothDevice& device);
+    void AddDevice(const Lumina::BluetoothDevice& device);
     void RemoveDevice(const std::string& deviceAddress);
     void ConnectToDevice(const std::string& deviceAddress);
     void DisconnectFromDevice(const std::string& deviceAddress);
     
     // Device queries
-    const std::vector<BluetoothDevice>& GetDiscoveredDevices() const;
-    const std::vector<BluetoothDevice>& GetPairedDevices() const;
-    const std::vector<BluetoothDevice>& GetConnectedDevices() const;
+    const std::vector<Lumina::BluetoothDevice>& GetDiscoveredDevices() const;
+    const std::vector<Lumina::BluetoothDevice>& GetPairedDevices() const;
+    const std::vector<Lumina::BluetoothDevice>& GetConnectedDevices() const;
     
     // Device information
-    BluetoothDevice* GetDeviceByAddress(const std::string& deviceAddress);
+    Lumina::BluetoothDevice* GetDeviceByAddress(const std::string& deviceAddress);
     bool IsDeviceConnected(const std::string& deviceAddress) const;
     bool IsDevicePaired(const std::string& deviceAddress) const;
 
@@ -61,9 +64,9 @@ public:
     bool CanRenderDeviceList() const { return m_CanRenderDeviceList; }
 
 private:
-    std::vector<BluetoothDevice> m_DiscoveredDevices;
-    std::vector<BluetoothDevice> m_PairedDevices;
-    std::vector<BluetoothDevice> m_ConnectedDevices;
+    std::vector<Lumina::BluetoothDevice> m_DiscoveredDevices;
+    std::vector<Lumina::BluetoothDevice> m_PairedDevices;
+    std::vector<Lumina::BluetoothDevice> m_ConnectedDevices;
     
     bool m_IsScanning;
     int m_ScanTimeoutSeconds;

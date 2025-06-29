@@ -111,11 +111,6 @@ void LuminaMainWindow::Render()
 			ImGui::MenuItem("Save");
 			ImGui::EndMenu();
 		}
-		
-		if (ImGui::BeginMenu("Options"))
-		{
-			ImGui::EndMenu();
-		}
 
 		if (ImGui::BeginMenu("Help"))
 		{

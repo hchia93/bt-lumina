@@ -114,7 +114,7 @@ void LuminaDeviceManagerTab::RenderDeviceControlTab()
     if (m_ShowDeviceDetails && !m_SelectedDeviceAddress.empty())
     {
         ImGui::Separator();
-        BluetoothDevice* device = m_DeviceManager.GetDeviceByAddress(m_SelectedDeviceAddress);
+        Lumina::BluetoothDevice* device = m_DeviceManager.GetDeviceByAddress(m_SelectedDeviceAddress);
         if (device)
         {
             RenderDeviceDetails(*device);
@@ -122,7 +122,7 @@ void LuminaDeviceManagerTab::RenderDeviceControlTab()
     }
 }
 
-void LuminaDeviceManagerTab::RenderDeviceList(const std::vector<BluetoothDevice>& devices, const char* title)
+void LuminaDeviceManagerTab::RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title)
 {
     ImGui::Text("%s:", title);
     ImGui::BeginChild(title, ImVec2(0, 200), true);
@@ -200,7 +200,7 @@ void LuminaDeviceManagerTab::RenderDeviceList(const std::vector<BluetoothDevice>
     ImGui::EndChild();
 }
 
-void LuminaDeviceManagerTab::RenderDeviceDetails(const BluetoothDevice& device)
+void LuminaDeviceManagerTab::RenderDeviceDetails(const Lumina::BluetoothDevice& device)
 {
     ImGui::Text("Device Details");
     ImGui::Separator();
@@ -217,7 +217,7 @@ void LuminaDeviceManagerTab::RenderDeviceDetails(const BluetoothDevice& device)
     RenderDeviceActions(device);
 }
 
-void LuminaDeviceManagerTab::RenderDeviceActions(const BluetoothDevice& device)
+void LuminaDeviceManagerTab::RenderDeviceActions(const Lumina::BluetoothDevice& device)
 {
     ImGui::Text("Actions:");
     
@@ -309,7 +309,7 @@ void LuminaDeviceManagerTab::OnAddDevice()
 {
     if (strlen(m_DeviceNameBuffer) > 0 && strlen(m_DeviceAddressBuffer) > 0)
     {
-        BluetoothDevice newDevice;
+        Lumina::BluetoothDevice newDevice;
         newDevice.name = m_DeviceNameBuffer;
         newDevice.address = m_DeviceAddressBuffer;
         newDevice.deviceType = strlen(m_DeviceTypeBuffer) > 0 ? m_DeviceTypeBuffer : "Unknown";

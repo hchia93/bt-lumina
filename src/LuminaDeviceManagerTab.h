@@ -22,9 +22,9 @@ private:
     // UI helper methods
     void RenderDeviceDiscoveryTab();
     void RenderDeviceControlTab();
-    void RenderDeviceList(const std::vector<BluetoothDevice>& devices, const char* title);
-    void RenderDeviceDetails(const BluetoothDevice& device);
-    void RenderDeviceActions(const BluetoothDevice& device);
+    void RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title);
+    void RenderDeviceDetails(const Lumina::BluetoothDevice& device);
+    void RenderDeviceActions(const Lumina::BluetoothDevice& device);
     void RenderScanControls();
     void RenderDeviceForm();
     
