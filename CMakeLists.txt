@@ -21,6 +21,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(imgui)
 
 # Find GLFW3 and OpenGL
+
 find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 
@@ -93,6 +94,11 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
+
+    # Enable C++/WinRT coroutine support
+    target_compile_options(${PROJECT_NAME} PRIVATE /await)
+    # Link against windowsapp.lib for WinRT APIs
+    target_link_libraries(${PROJECT_NAME} PRIVATE windowsapp)
     
     # Hide console window if option is enabled
     if(HIDE_CONSOLE)
@@ -107,6 +113,13 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+)
+
+# Copy resources directory to build output directory after build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
 )
 
 # Print configuration info

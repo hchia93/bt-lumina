@@ -31,6 +31,8 @@
 *.out
 *.app
 
+cursor.yml
+
 
 /vcpkg_installed
 /generated-vs

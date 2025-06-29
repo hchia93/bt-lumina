@@ -6,6 +6,9 @@
 #include <imgui.h>
 #include <stdio.h>
 
+	#include <filesystem>
+	#include <iostream>
+
 #include "LuminaMainWindow.h"
 
 // OpenGL function declarations for Windows
@@ -37,7 +40,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1280, 720, "Bluetooth Control Panel", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1200, 720, "Lumina", NULL, NULL);
 	if (!window)
 	{
 		fprintf(stderr, "Failed to create GLFW window!\n");
@@ -57,6 +60,7 @@ int main(int argc, char** argv)
 	ImGui_ImplOpenGL3_Init("#version 330");
 
 	LuminaMainWindow mainWindow;
+	mainWindow.ApplyImGuiStyle();
 
 	// Main loop
 	while (!glfwWindowShouldClose(window))

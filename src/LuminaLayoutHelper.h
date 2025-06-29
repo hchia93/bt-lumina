@@ -1,13 +1,12 @@
 #pragma once
 #include <imgui.h>
 
-class LuminaLayoutHelper
+namespace LuminaLayoutHelper
 {
-public:
-	static float GetMenuBarHeight()
+	static float m_PaddingSize = 6.0f;
+
+	inline float GetMenuBarPosY()
 	{
 		return ImGui::GetFontSize() + m_PaddingSize;
 	}
-private:
-	static float m_PaddingSize;
-}; 
+} 

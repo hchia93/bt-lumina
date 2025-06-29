@@ -11,14 +11,13 @@ public:
     void Render();
 
 private:
-    LuminaDeviceManager deviceManager;
-    
-    // UI state variables
-    bool showDeviceDetails;
-    std::string selectedDeviceAddress;
-    char deviceNameBuffer[256];
-    char deviceAddressBuffer[256];
-    char deviceTypeBuffer[256];
+    LuminaDeviceManager m_DeviceManager;
+
+    bool m_ShowDeviceDetails;
+    std::string m_SelectedDeviceAddress;
+    char m_DeviceNameBuffer[256];
+    char m_DeviceAddressBuffer[256];
+    char m_DeviceTypeBuffer[256];
     
     // UI helper methods
     void RenderDeviceDiscoveryTab();
