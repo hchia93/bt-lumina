@@ -1,25 +1,8 @@
 # BT-Lumina
 
-BT-Lumina is an ImGui-based Bluetooth Smart Device Controller. This project provides a lightweight, cross-platform GUI application for managing Bluetooth devices using ImGui + GLFW3 + OpenGL, eliminating the need for heavy Qt dependencies.
+Lumina is an ImGui-based Bluetooth Smart Device Controller. This project provides a lightweight, Windows GUI application for managing Bluetooth devices using ImGui + GLFW3 + OpenGL.
 
-![Preview](preview.png)S
-
-## Features
-
-- Cross-platform GUI using ImGui + GLFW3 + OpenGL
-- Lightweight and easy to deploy (no Qt DLLs required)
-- Modern C++17 implementation
-- CMake-based build system with vcpkg dependency management
-
-## Prerequisites
-
-| Dependency | Version/Details | Source |
-|------------|----------------|--------|
-| **ImGui**  | Latest version | https://github.com/ocornut/imgui |
-| **GLFW3**  | Version 3.4 or higher | https://www.glfw.org/ |
-| **CMake**  | >= 3.16 | https://cmake.org/ |
-| **vcpkg**  | Latest version | https://github.com/microsoft/vcpkg |
-| **Compiler** | C++17 compatible (MSVC 2022 or newer recommended) | - |
+![Preview](preview.png)
 
 ## Project Structure
 
@@ -27,48 +10,47 @@ BT-Lumina is an ImGui-based Bluetooth Smart Device Controller. This project prov
 bt-lumina/
 ├── CMakeLists.txt         # CMake build configuration
 ├── vcpkg.json             # Dependency manifest
-├── generate.bat           # One-step dependency install & solution generator
+├── generate.bat           # Install dependencies and generate solution
 ├── README.md              # This file
 ├── src/                   # Source code
 │   └── main.cpp           # Main application entry point
 └── resources/             # Resource files (if any)
 ```
 
-## Setup Instructions
+## Prerequisites
 
-### 1. Install Dependencies & Generate Visual Studio Solution
+To build and run this project, external dependencies are required. The `generate.bat` script will install them accordingly.
 
-Run the following script from the project root:
+| Dependency | Version/Details |
+|------------|----------------|
+| **ImGui**  | Latest version |
+| **GLFW3**  | Version 3.4 or higher |
 
-```cmd
-generate.bat
-```
+## Running the Project
 
-This will:
-- Check for required tools (Git, vcpkg, CMake)
-- Install all dependencies via vcpkg
-- Generate a Visual Studio solution in the `generated-vs` directory
+### Step 1: Generate Solution
 
-### 2. Open and Build in Visual Studio
-
-1. Open `generated-vs/bt-lumina.sln` in Visual Studio 2022 or newer.
-2. Build the solution (Ctrl+Shift+B).
-3. Run the application (F5 or Ctrl+F5).
-
-> **Note:** The first time you open the solution, you may need to set `bt-lumina` as the startup project:
-> - In Solution Explorer, right-click `bt-lumina` and select **Set as StartUp Project**.
-
-### 3. Run the Application
-
-After building, run the executable:
+Execute the generator script. This will install dependencies and generate the Visual Studio solution:
 
 ```cmd
-.\generated-vs\Debug\bt-lumina.exe
+/generate.bat
 ```
 
-## References
-For more information about the technologies used:
+The solution will be generated in 
+```cmd
+/generated-vs/
+```
+
+### Step 2: Build and Run
+
+Open the generated solution located at:
+```cmd
+/generated-vs/bt-lumina.sln
+```
+
+
+## Learning Resources
+
 - [ImGui Documentation](https://github.com/ocornut/imgui)
 - [GLFW Documentation](https://www.glfw.org/documentation.html)
-- [vcpkg Documentation](https://github.com/microsoft/vcpkg)
 
