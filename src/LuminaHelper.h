@@ -7,8 +7,3 @@ namespace LuminaHelper
     ImVec4 LightenColor(const ImVec4& color, float percent);
     float GetMenuBarPosY();
 }
-
-namespace ImGui
-{
-    void ButtonDisabled(const char* label, const ImVec2& size, ImVec4& color);
-}

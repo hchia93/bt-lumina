@@ -33,17 +33,3 @@ namespace LuminaHelper
         return ImGui::GetFontSize() + padding;
     }
 }
-
-namespace ImGui
-{
-    void ButtonDisabled(const char* label, const ImVec2& size, ImVec4& color)
-    {
-        ImVec4 disabledColor = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-        disabledColor = LuminaHelper::DarkenColor(disabledColor, 0.2f);
-        ImGui::PushStyleColor(ImGuiCol_Button, disabledColor);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, disabledColor);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, disabledColor);
-        ImGui::Button(label, size);
-        ImGui::PopStyleColor(3);
-    }
-}

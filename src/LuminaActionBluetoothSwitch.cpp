@@ -19,13 +19,14 @@ void LuminaActionBluetoothSwitch::GetIsBluetoothEnabledAsync(std::function<void(
         return;
     }
 
-    // Run the async operation on a background thread
-    winrt::Windows::System::Threading::ThreadPool::RunAsync([this, callback](auto&&)
+    auto op = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync();
+    op.Completed([this, callback](auto&& asyncOp, auto&& status) {
+        bool result = false;
+        if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
         {
             try
             {
-                auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
-                bool result = false;
+                auto radios = asyncOp.GetResults();
                 for (const auto& radio : radios)
                 {
                     if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
@@ -34,59 +35,53 @@ void LuminaActionBluetoothSwitch::GetIsBluetoothEnabledAsync(std::function<void(
                         break;
                     }
                 }
-
-                // Update the cached value and call the callback
-                m_IsBluetoothEnabled = result;
-                if (callback)
-                {
-                    callback(result);
-                }
             }
             catch (...)
             {
-                // Handle any exceptions and call callback with false
-                m_IsBluetoothEnabled = false;
-                if (callback)
-                {
-                    callback(false);
-                }
+                // handle error
             }
-        });
+        }
+        m_IsBluetoothEnabled = result;
+        if (callback) callback(result);
+    });
 }
 
 void LuminaActionBluetoothSwitch::SetBluetoothEnabledAsync(bool enabled, std::function<void()> callback)
 {
-    // Run the async operation on a background thread
-    winrt::Windows::System::Threading::ThreadPool::RunAsync([this, enabled, callback](auto&&)
+    auto op = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync();
+    op.Completed([this, enabled, callback](auto&& asyncOp, auto&& status) {
+        if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
         {
             try
             {
-                auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
+                auto radios = asyncOp.GetResults();
                 for (const auto& radio : radios)
                 {
                     if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
                     {
-                        if (enabled)
-                        {
-                            radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::On).get();
-                        }
-                        else
-                        {
-                            radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::Off).get();
-                        }
-                        m_IsBluetoothEnabled = enabled;
-                        break;
+                        auto setOp = radio.SetStateAsync(enabled ? winrt::Windows::Devices::Radios::RadioState::On : winrt::Windows::Devices::Radios::RadioState::Off);
+                        setOp.Completed([this, enabled, callback](auto&&, auto&& setStatus) {
+                            if (setStatus == winrt::Windows::Foundation::AsyncStatus::Completed)
+                            {
+                                m_IsBluetoothEnabled = enabled;
+                            }
+                            if (callback) callback();
+                        });
+                        return;
                     }
                 }
-
-                if (callback) callback();
             }
             catch (...)
             {
-                // Handle any exceptions and still call the callback
+                // handle error
                 if (callback) callback();
             }
-        });
+        }
+        else
+        {
+            if (callback) callback();
+        }
+    });
 }
 
 void LuminaActionBluetoothSwitch::FetchBluetoothEnabledState()
