@@ -28,58 +28,36 @@ public:
     LuminaDeviceManager();
     ~LuminaDeviceManager();
 
-    // Device scanning
-    void StartScan();
-    void StopScan();
-    bool GetIsScanning() const;
-    void ScanAsync(); // New: WinRT async scan
-    void Tick(); // Call this every frame
-    
     // Device management
     void AddDevice(const Lumina::BluetoothDevice& device);
     void RemoveDevice(const std::string& deviceAddress);
     void ConnectToDevice(const std::string& deviceAddress);
     void DisconnectFromDevice(const std::string& deviceAddress);
-    
+
     // Device queries
-    const std::vector<Lumina::BluetoothDevice>& GetDiscoveredDevices() const;
     const std::vector<Lumina::BluetoothDevice>& GetPairedDevices() const;
     const std::vector<Lumina::BluetoothDevice>& GetConnectedDevices() const;
-    
+    const std::vector<Lumina::BluetoothDevice>& GetDiscoveredDevices() const;
+    void AddDiscoveredDevice(const Lumina::BluetoothDevice& device);
+    void ClearDiscoveredDevices();
+
     // Device information
     Lumina::BluetoothDevice* GetDeviceByAddress(const std::string& deviceAddress);
     bool IsDeviceConnected(const std::string& deviceAddress) const;
     bool IsDevicePaired(const std::string& deviceAddress) const;
 
     void Render();
-    void ClearDiscoveredDevices();
 
-    void StartScanWithGate();
-    bool IsScanInProgress() const;
-    float GetScanProgress() const;
-    void UpdateScanState();
-
-    void SetOnBeginScanCooldown(const std::function<void()>& cb) { m_OnBeginScanCooldown = cb; }
-    void SetOnCompleteScanCooldown(const std::function<void()>& cb) { m_OnCompleteScanCooldown = cb; }
-    bool CanRenderDeviceList() const { return m_CanRenderDeviceList; }
+    // Cleanup method
+    void Cleanup();
 
 private:
     std::vector<Lumina::BluetoothDevice> m_DiscoveredDevices;
     std::vector<Lumina::BluetoothDevice> m_PairedDevices;
     std::vector<Lumina::BluetoothDevice> m_ConnectedDevices;
-    
-    bool m_IsScanning;
-    int m_ScanTimeoutSeconds;
-    std::chrono::steady_clock::time_point m_LastScanTime;
 
-    // Scan gating/progress
-    bool m_ScanInProgress = false;
-    std::chrono::steady_clock::time_point m_ScanStartTime;
-    float m_ScanCooldown = 0.5f;
-
-    std::function<void()> m_OnBeginScanCooldown;
-    std::function<void()> m_OnCompleteScanCooldown;
-    bool m_CanRenderDeviceList = true;
+    // Flag to prevent new async operations during cleanup
+    bool m_IsShuttingDown = false;
 
     void UpdateDeviceStatus(const std::string& deviceAddress, bool connected, bool paired);
-}; 
+};

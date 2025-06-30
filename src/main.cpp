@@ -1,13 +1,13 @@
+#include <stdio.h>
+#include <filesystem>
+#include <iostream>
 #include <windows.h>
+
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
-#include <stdio.h>
-
-	#include <filesystem>
-	#include <iostream>
 
 #include "LuminaMainWindow.h"
 
@@ -84,12 +84,24 @@ int main(int argc, char** argv)
 		glfwSwapBuffers(window);
 	}
 
-	// Cleanup
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	// Cleanup - ensure proper order
+	try
+	{
+		// Cleanup ImGui
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+		
+		// Cleanup GLFW
+		glfwDestroyWindow(window);
+		glfwTerminate();
+	}
+	catch (...)
+	{
+		// Handle any cleanup errors
+		fprintf(stderr, "Error during cleanup\n");
+	}
+	
 	return 0;
 }
 

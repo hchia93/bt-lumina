@@ -86,12 +86,14 @@ void LuminaMainWindow::ApplyImGuiStyle()
 	// Always set the default font size to 14px
 	ImFontConfig config;
 	config.SizePixels = 14.0f;
-	io.FontDefault = io.Fonts->AddFontDefault(&config);
+	io.Fonts->AddFontDefault(&config);
 
-	//io.Fonts->AddFontFromFileTTF("Ruda-Bold.ttf", 12);
-	//io.Fonts->AddFontFromFileTTF("Ruda-Bold.ttf", 10);
-	//io.Fonts->AddFontFromFileTTF("Ruda-Bold.ttf", 14);
-	//io.Fonts->AddFontFromFileTTF("Ruda-Bold.ttf", 18);
+	// Load Ruda-Bold.ttf from the resources folder and set as default
+	ImFont* rudaFont = io.Fonts->AddFontFromFileTTF("../resources/Ruda-Bold.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+	if (rudaFont)
+	{
+		io.FontDefault = rudaFont;
+	}
 }
 
 void LuminaMainWindow::Render()
@@ -134,7 +136,7 @@ void LuminaMainWindow::Render()
 
 	if (ImGui::BeginTabBar("MainTabs"))
 	{
-		if (ImGui::BeginTabItem("Manage Device"))
+		if (ImGui::BeginTabItem("Device Discovery"))
 		{
 			m_DeviceManager.Render();
 			ImGui::EndTabItem();

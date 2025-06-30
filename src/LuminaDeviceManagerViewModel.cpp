@@ -1,20 +1,37 @@
-#include "LuminaDeviceManagerViewModel.h"
-#include <imgui.h>
 #include <sstream>
 #include <iomanip>
-#include "LuminaLayoutHelper.h"
+#include <imgui.h>
+#include "LuminaDeviceManagerViewModel.h"
+#include "LuminaHelper.h"
 
 LuminaDeviceManagerViewModel::LuminaDeviceManagerViewModel()
     : m_ShowDeviceDetails(false)
     , m_SelectedDeviceAddress("")
+    , m_PropertyViewModel()
+    , m_BluetoothSwitch()
 {
-    m_DeviceManager.SetOnBeginScanCooldown([this]() {
-        m_DeviceManager.ClearDiscoveredDevices();
-        m_DeviceManager.ScanAsync();
-    });
-    m_DeviceManager.SetOnCompleteScanCooldown([]() {
-        // No-op or set a flag if needed
-    });
+    m_DiscoverDevice.SetOnBeginScanCooldown([this]()
+        {
+            m_DeviceManager.ClearDiscoveredDevices();
+        });
+    m_DiscoverDevice.SetOnCompleteScanCooldown([]()
+        {
+            // No-op or set a flag if needed
+        });
+    m_DiscoverDevice.SetOnDevicesDiscovered([this](const std::vector<winrt::Windows::Devices::Enumeration::DeviceInformation>& discovered)
+        {
+            for (const auto& device : discovered)
+            {
+                Lumina::BluetoothDevice btDevice;
+                btDevice.name = winrt::to_string(device.Name());
+                btDevice.address = winrt::to_string(device.Id());
+                btDevice.isConnected = false;
+                btDevice.isPaired = device.Pairing().IsPaired();
+                btDevice.signalStrength = 0;
+                btDevice.deviceType = "Unknown";
+                m_DeviceManager.AddDiscoveredDevice(btDevice);
+            }
+        });
 }
 
 LuminaDeviceManagerViewModel::~LuminaDeviceManagerViewModel()
@@ -23,130 +40,63 @@ LuminaDeviceManagerViewModel::~LuminaDeviceManagerViewModel()
 
 void LuminaDeviceManagerViewModel::Render()
 {
-    m_DeviceManager.Tick();
-    if (ImGui::BeginTabBar("DeviceManagerTabs"))
-    {
-        if (ImGui::BeginTabItem("Device Discovery"))
-        {
-            RenderDeviceDiscoveryTab();
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Device Control"))
-        {
-            RenderDeviceControlTab();
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-    }
+    m_DiscoverDevice.Tick();
+    RenderDeviceDiscoveryTab();
 }
 
 void LuminaDeviceManagerViewModel::RenderDeviceDiscoveryTab()
 {
-    ImGui::Text("Bluetooth Device Discovery");
+    RenderActionList();
     ImGui::Separator();
-    
-    // Scan controls
-    RenderScanControls();
-    
-    ImGui::Separator();
-    
-    // Discovered devices
-    if (m_DeviceManager.CanRenderDeviceList())
+    if (m_DiscoverDevice.CanRenderDeviceList())
     {
         const auto& discoveredDevices = m_DeviceManager.GetDiscoveredDevices();
         if (discoveredDevices.empty())
         {
             ImGui::Text("No devices discovered");
-            if (m_DeviceManager.IsScanInProgress())
-            {
-                ImGui::Text("Scanning...");
-            }
         }
         else
         {
-            RenderDeviceList(discoveredDevices, "Discovered Devices");
+            RenderDeviceList(discoveredDevices, nullptr);
         }
     }
-    
-    ImGui::Separator();
-}
-
-void LuminaDeviceManagerViewModel::RenderDeviceControlTab()
-{
-    ImGui::Text("Device Control Panel");
-    ImGui::Separator();
-    
-    // Connected devices
-    const auto& connectedDevices = m_DeviceManager.GetConnectedDevices();
-    if (connectedDevices.empty())
-    {
-        ImGui::Text("No devices connected");
-    }
-    else
-    {
-        RenderDeviceList(connectedDevices, "Connected Devices");
-    }
-    
-    ImGui::Separator();
-    
-    // Paired devices
-    const auto& pairedDevices = m_DeviceManager.GetPairedDevices();
-    if (pairedDevices.empty())
-    {
-        ImGui::Text("No paired devices");
-    }
-    else
-    {
-        RenderDeviceList(pairedDevices, "Paired Devices");
-    }
-    
-    // Device details panel
-    if (m_ShowDeviceDetails && !m_SelectedDeviceAddress.empty())
-    {
-        ImGui::Separator();
-        Lumina::BluetoothDevice* device = m_DeviceManager.GetDeviceByAddress(m_SelectedDeviceAddress);
-        if (device)
-        {
-            RenderDeviceDetails(*device);
-        }
-    }
+    m_PropertyViewModel.Render(m_DeviceManager);
 }
 
 void LuminaDeviceManagerViewModel::RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title)
 {
-    ImGui::Text("%s:", title);
-    ImGui::BeginChild(title, ImVec2(0, 200), true);
-    
+    ImGui::BeginChild(title ? title : "DeviceListChild", ImVec2(0, 200), true);
+    // Table headers
+    ImGui::Columns(4, nullptr, false);
+    ImGui::Text("Discovered Device");
+    ImGui::NextColumn();
+    ImGui::Text("Pair State");
+    ImGui::NextColumn();
+    ImGui::Text("Connect State");
+    ImGui::NextColumn();
+    ImGui::Text("Actions");
+    ImGui::NextColumn();
+    ImGui::Separator();
     for (const auto& device : devices)
     {
         ImGui::PushID(device.address.c_str());
-        
-        // Device status icon
-        if (device.isConnected)
+        // Discovered Device (name) - clickable and right-clickable
+        bool selected = (m_SelectedDeviceAddress == device.address);
+        if (ImGui::Selectable(device.name.c_str(), selected, ImGuiSelectableFlags_AllowDoubleClick))
         {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "●"); // Green dot for connected
+            if (ImGui::IsMouseClicked(0)) // left click
+            {
+                OnDeviceSelected(device.address);
+            }
         }
-        else if (device.isPaired)
+        if (ImGui::BeginPopupContextItem("##device_context"))
         {
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "○"); // Yellow circle for paired
+            if (ImGui::MenuItem("Properties"))
+            {
+                m_PropertyViewModel.Show(device.address);
+            }
+            ImGui::EndPopup();
         }
-        else
-        {
-            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "○"); // Gray circle for discovered
-        }
-        
-        ImGui::SameLine();
-        
-        // Device name and selection
-        float selectableY = ImGui::GetCursorPosY();
-        if (ImGui::Selectable(device.name.c_str(), m_SelectedDeviceAddress == device.address, 0, ImVec2(300, 0)))
-        {
-            OnDeviceSelected(device.address);
-        }
-        float selectableHeight = ImGui::GetItemRectSize().y;
-        float buttonY = selectableY + (selectableHeight - ImGui::GetFrameHeight()) * 0.5f;
-
-        // Show tooltip only when hovering the device name
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
@@ -158,10 +108,28 @@ void LuminaDeviceManagerViewModel::RenderDeviceList(const std::vector<Lumina::Bl
                 device.isPaired ? (device.isConnected ? ", " : "") + std::string("Paired") : "");
             ImGui::EndTooltip();
         }
-        
-        ImGui::SameLine();
-        ImGui::SetCursorPosY(buttonY);
-        ImGui::PushItemWidth(80);
+        ImGui::NextColumn();
+        // Pair State
+        if (device.isPaired)
+        {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Paired");
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Unpaired");
+        }
+        ImGui::NextColumn();
+        // Connect State
+        if (device.isConnected)
+        {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Disconnected");
+        }
+        ImGui::NextColumn();
+        // Actions
         if (device.isConnected)
         {
             if (ImGui::Button("Disconnect"))
@@ -177,16 +145,14 @@ void LuminaDeviceManagerViewModel::RenderDeviceList(const std::vector<Lumina::Bl
             }
         }
         ImGui::SameLine();
-        ImGui::SetCursorPosY(buttonY);
         if (ImGui::Button("Remove"))
         {
             OnRemoveDevice(device.address);
         }
-        ImGui::PopItemWidth();
-        
+        ImGui::NextColumn();
         ImGui::PopID();
     }
-    
+    ImGui::Columns(1);
     ImGui::EndChild();
 }
 
@@ -194,15 +160,13 @@ void LuminaDeviceManagerViewModel::RenderDeviceDetails(const Lumina::BluetoothDe
 {
     ImGui::Text("Device Details");
     ImGui::Separator();
-    
     ImGui::Text("Name: %s", device.name.c_str());
     ImGui::Text("Address: %s", device.address.c_str());
     ImGui::Text("Type: %s", device.deviceType.c_str());
     ImGui::Text("Signal Strength: %d dBm", device.signalStrength);
-    ImGui::Text("Status: %s%s", 
+    ImGui::Text("Status: %s%s",
         device.isConnected ? "Connected" : "",
         device.isPaired ? (device.isConnected ? ", " : "") + std::string("Paired") : "");
-    
     ImGui::Separator();
     RenderDeviceActions(device);
 }
@@ -210,7 +174,6 @@ void LuminaDeviceManagerViewModel::RenderDeviceDetails(const Lumina::BluetoothDe
 void LuminaDeviceManagerViewModel::RenderDeviceActions(const Lumina::BluetoothDevice& device)
 {
     ImGui::Text("Actions:");
-    
     if (device.isConnected)
     {
         if (ImGui::Button("Disconnect Device", ImVec2(120, 0)))
@@ -225,7 +188,6 @@ void LuminaDeviceManagerViewModel::RenderDeviceActions(const Lumina::BluetoothDe
             OnConnectDevice(device.address);
         }
     }
-    
     ImGui::SameLine();
     if (ImGui::Button("Remove Device", ImVec2(120, 0)))
     {
@@ -233,22 +195,33 @@ void LuminaDeviceManagerViewModel::RenderDeviceActions(const Lumina::BluetoothDe
     }
 }
 
-void LuminaDeviceManagerViewModel::RenderScanControls()
+void LuminaDeviceManagerViewModel::RenderActionList()
 {
-    m_DeviceManager.UpdateScanState();
-
-    ImGui::BeginDisabled(m_DeviceManager.IsScanInProgress());
+    // Bluetooth state button
+    bool btEnabled = m_BluetoothSwitch.IsBluetoothEnabled();
+    ImVec4 btColor = btEnabled ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+    ImVec4 btColorHighlight = LuminaHelper::LightenColor(btColor, 0.15f);
+    ImGui::PushStyleColor(ImGuiCol_Button, btColor);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, btColorHighlight);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, btColorHighlight);
+    if (ImGui::Button("BT", ImVec2(48, 0)))
+    {
+        m_BluetoothSwitch.SetBluetoothEnabled(!btEnabled);
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::SameLine();
+    m_DiscoverDevice.UpdateScanState();
+    ImGui::BeginDisabled(m_DiscoverDevice.IsScanInProgress());
     if (ImGui::Button("Scan", ImVec2(120, 0)))
     {
         m_DeviceManager.ClearDiscoveredDevices();
-        m_DeviceManager.StartScanWithGate();
+        m_DiscoverDevice.StartScanWithGate();
     }
     ImGui::EndDisabled();
-
-    if (m_DeviceManager.IsScanInProgress())
+    if (m_DiscoverDevice.IsScanInProgress())
     {
         ImGui::SameLine();
-        ImGui::ProgressBar(m_DeviceManager.GetScanProgress(), ImVec2(200, 0), nullptr);
+        ImGui::ProgressBar(m_DiscoverDevice.GetScanProgress(), ImVec2(120, 0), nullptr);
         ImGui::SameLine();
         ImGui::Text("Scanning...");
     }
@@ -278,4 +251,4 @@ void LuminaDeviceManagerViewModel::OnRemoveDevice(const std::string& deviceAddre
         m_SelectedDeviceAddress = "";
         m_ShowDeviceDetails = false;
     }
-} 
+}
