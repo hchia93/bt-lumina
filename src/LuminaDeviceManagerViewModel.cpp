@@ -197,16 +197,30 @@ void LuminaDeviceManagerViewModel::RenderDeviceActions(const Lumina::BluetoothDe
 
 void LuminaDeviceManagerViewModel::RenderActionList()
 {
+    // Update Bluetooth state if needed
+    m_BluetoothSwitch.FetchBluetoothEnabledState();
+    
     // Bluetooth state button
-    bool btEnabled = m_BluetoothSwitch.IsBluetoothEnabled();
+    bool btEnabled = m_BluetoothSwitch.GetIsBluetoothEnabled();
     ImVec4 btColor = btEnabled ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
     ImVec4 btColorHighlight = LuminaHelper::LightenColor(btColor, 0.15f);
     ImGui::PushStyleColor(ImGuiCol_Button, btColor);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, btColorHighlight);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, btColorHighlight);
-    if (ImGui::Button("BT", ImVec2(48, 0)))
+
+    if (m_BluetoothSwitch.GetIsStateRequested())
     {
-        m_BluetoothSwitch.SetBluetoothEnabled(!btEnabled);
+        ImGui::ButtonDisabled("BT", ImVec2(48, 0), btColor);
+    }
+    else
+    {
+        if (ImGui::Button("BT", ImVec2(48, 0)))
+        {
+            m_BluetoothSwitch.SetBluetoothEnabledAsync(!btEnabled, [this]()
+                {
+                    // Optionally handle post-toggle actions
+                });
+        }
     }
     ImGui::PopStyleColor(3);
     ImGui::SameLine();

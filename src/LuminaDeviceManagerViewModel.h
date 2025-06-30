@@ -1,6 +1,7 @@
 #pragma once
 #include "LuminaDeviceManager.h"
 #include <string>
+#include <optional>
 #include "LuminaDevicePropertyViewModel.h"
 #include "LuminaHelper.h"
 #include "LuminaActionBluetoothSwitch.h"
@@ -24,6 +25,7 @@ private:
     LuminaDevicePropertyViewModel m_PropertyViewModel;
     LuminaActionBluetoothSwitch m_BluetoothSwitch;
     LuminaActionDiscoverDevice m_DiscoverDevice;
+    
     // UI helper methods
     void RenderDeviceDiscoveryTab();
     void RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title);

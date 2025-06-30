@@ -1,77 +1,113 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Devices.Radios.h>
+#include <winrt/Windows.System.Threading.h>
 #include "LuminaActionBluetoothSwitch.h"
 
-bool LuminaActionBluetoothSwitch::IsBluetoothEnabled() const
+bool LuminaActionBluetoothSwitch::GetIsBluetoothEnabled()
 {
-    if (m_IsShuttingDown)
-    {
-        return false;
-    }
-    try
-    {
-        auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
-        for (const auto& radio : radios)
-        {
-            if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
-            {
-                return radio.State() == winrt::Windows::Devices::Radios::RadioState::On;
-            }
-        }
-    }
-    catch (const winrt::hresult_canceled&)
-    {
-        // Operation was canceled, this is expected during shutdown
-    }
-    catch (...)
-    {
-        // Fallback or error
-    }
-    return false;
+    return m_IsBluetoothEnabled.value_or(false);
 }
 
-void LuminaActionBluetoothSwitch::SetBluetoothEnabled(bool enabled)
+void LuminaActionBluetoothSwitch::GetIsBluetoothEnabledAsync(std::function<void(bool)> callback)
 {
-    if (m_IsShuttingDown)
+    if (m_IsBluetoothEnabled.has_value())
     {
+        if (callback)
+        {
+            callback(m_IsBluetoothEnabled.value());
+        }
         return;
     }
-    try
-    {
-        auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
-        for (const auto& radio : radios)
+
+    // Run the async operation on a background thread
+    winrt::Windows::System::Threading::ThreadPool::RunAsync([this, callback](auto&&)
         {
-            if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
+            try
             {
-                try
+                auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
+                bool result = false;
+                for (const auto& radio : radios)
                 {
-                    if (enabled)
+                    if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
                     {
-                        radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::On).get();
-                    }
-                    else
-                    {
-                        radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::Off).get();
+                        result = (radio.State() == winrt::Windows::Devices::Radios::RadioState::On);
+                        break;
                     }
                 }
-                catch (const winrt::hresult_canceled&)
+
+                // Update the cached value and call the callback
+                m_IsBluetoothEnabled = result;
+                if (callback)
                 {
-                    // Operation was canceled, this is expected during shutdown
+                    callback(result);
                 }
-                catch (...)
-                {
-                    // Handle any errors during radio state setting
-                }
-                break;
             }
-        }
-    }
-    catch (const winrt::hresult_canceled&)
+            catch (...)
+            {
+                // Handle any exceptions and call callback with false
+                m_IsBluetoothEnabled = false;
+                if (callback)
+                {
+                    callback(false);
+                }
+            }
+        });
+}
+
+void LuminaActionBluetoothSwitch::SetBluetoothEnabledAsync(bool enabled, std::function<void()> callback)
+{
+    // Run the async operation on a background thread
+    winrt::Windows::System::Threading::ThreadPool::RunAsync([this, enabled, callback](auto&&)
+        {
+            try
+            {
+                auto radios = winrt::Windows::Devices::Radios::Radio::GetRadiosAsync().get();
+                for (const auto& radio : radios)
+                {
+                    if (radio.Kind() == winrt::Windows::Devices::Radios::RadioKind::Bluetooth)
+                    {
+                        if (enabled)
+                        {
+                            radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::On).get();
+                        }
+                        else
+                        {
+                            radio.SetStateAsync(winrt::Windows::Devices::Radios::RadioState::Off).get();
+                        }
+                        m_IsBluetoothEnabled = enabled;
+                        break;
+                    }
+                }
+
+                if (callback) callback();
+            }
+            catch (...)
+            {
+                // Handle any exceptions and still call the callback
+                if (callback) callback();
+            }
+        });
+}
+
+void LuminaActionBluetoothSwitch::FetchBluetoothEnabledState()
+{
+    if (!m_Requesting && !m_IsBluetoothEnabled.has_value())
     {
-        // Operation was canceled, this is expected during shutdown
+        m_Requesting = true;
+        GetIsBluetoothEnabledAsync([this](bool enabled)
+            {
+                OnStateReceived(enabled);
+            });
     }
-    catch (...)
-    {
-        // Fallback or error
-    }
+}
+
+bool LuminaActionBluetoothSwitch::GetIsStateRequested() const
+{
+    return m_Requesting;
+}
+
+void LuminaActionBluetoothSwitch::OnStateReceived(bool enabled)
+{
+    m_IsBluetoothEnabled = enabled;
+    m_Requesting = false;
 }

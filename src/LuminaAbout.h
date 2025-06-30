@@ -10,6 +10,6 @@ public:
     void Render();
 
 private:
-    bool m_Show = false;
+    bool m_IsDisplayed = false;
 };
 

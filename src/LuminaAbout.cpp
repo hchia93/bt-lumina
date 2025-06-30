@@ -9,17 +9,17 @@ namespace LuminaConfig
 
 void LuminaAbout::Show()
 {
-    m_Show = true;
+    m_IsDisplayed = true;
 }
 
 void LuminaAbout::Close()
 {
-    m_Show = false;
+    m_IsDisplayed = false;
 }
 
 bool LuminaAbout::CanShow()
 {
-    return m_Show;
+    return m_IsDisplayed;
 }
 
 void LuminaAbout::Render()
@@ -49,7 +49,7 @@ void LuminaAbout::Render()
         if (ImGui::Button("Back"))
         {
             ImGui::CloseCurrentPopup();
-            m_Show = false;
+            m_IsDisplayed = false;
         }
         ImGui::EndPopup();
     }

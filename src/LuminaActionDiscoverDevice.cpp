@@ -13,7 +13,6 @@ LuminaActionDiscoverDevice::LuminaActionDiscoverDevice()
     , m_ScanInProgress(false)
     , m_ScanStartTime(std::chrono::steady_clock::now())
     , m_CanRenderDeviceList(true)
-    , m_IsShuttingDown(false)
 {
     try
     {
@@ -26,16 +25,11 @@ LuminaActionDiscoverDevice::LuminaActionDiscoverDevice()
 
 LuminaActionDiscoverDevice::~LuminaActionDiscoverDevice()
 {
-    m_IsShuttingDown = true;
     if (m_IsScanning) StopScan();
 }
 
 void LuminaActionDiscoverDevice::StartScan()
 {
-    if (m_IsShuttingDown)
-    {
-        return;
-    }
     if (!m_IsScanning)
     {
         m_IsScanning = true;
@@ -45,17 +39,12 @@ void LuminaActionDiscoverDevice::StartScan()
 
 void LuminaActionDiscoverDevice::ScanAsync()
 {
-    if (m_IsShuttingDown)
-    {
-        return;
-    }
     try
     {
         auto selector = winrt::Windows::Devices::Bluetooth::BluetoothDevice::GetDeviceSelector();
         auto asyncOp = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(selector);
         asyncOp.Completed([this](auto const& op, auto const& status)
         {
-            if (m_IsShuttingDown) return;
             if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
             {
                 try

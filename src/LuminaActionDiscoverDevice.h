@@ -37,6 +37,5 @@ private:
     std::function<void()> m_OnBeginScanCooldown;
     std::function<void()> m_OnCompleteScanCooldown;
     bool m_CanRenderDeviceList = true;
-    bool m_IsShuttingDown = false;
     std::function<void(const std::vector<winrt::Windows::Devices::Enumeration::DeviceInformation>&)> m_OnDevicesDiscovered;
 }; 
