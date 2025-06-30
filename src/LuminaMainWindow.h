@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LuminaDeviceManagerTab.h"
+#include "LuminaDeviceManagerViewModel.h"
 #include "LuminaAbout.h"
 
 class LuminaMainWindow
@@ -11,6 +11,6 @@ public:
 
 private:
 
-	LuminaDeviceManagerTab m_DeviceManager;
+	LuminaDeviceManagerViewModel m_DeviceManager;
 	LuminaAbout m_About;
 };

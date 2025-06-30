@@ -1,18 +1,13 @@
-#include "LuminaDeviceManagerTab.h"
+#include "LuminaDeviceManagerViewModel.h"
 #include <imgui.h>
 #include <sstream>
 #include <iomanip>
 #include "LuminaLayoutHelper.h"
 
-LuminaDeviceManagerTab::LuminaDeviceManagerTab()
+LuminaDeviceManagerViewModel::LuminaDeviceManagerViewModel()
     : m_ShowDeviceDetails(false)
     , m_SelectedDeviceAddress("")
 {
-    // Initialize buffers
-    memset(m_DeviceNameBuffer, 0, sizeof(m_DeviceNameBuffer));
-    memset(m_DeviceAddressBuffer, 0, sizeof(m_DeviceAddressBuffer));
-    memset(m_DeviceTypeBuffer, 0, sizeof(m_DeviceTypeBuffer));
-
     m_DeviceManager.SetOnBeginScanCooldown([this]() {
         m_DeviceManager.ClearDiscoveredDevices();
         m_DeviceManager.ScanAsync();
@@ -22,11 +17,11 @@ LuminaDeviceManagerTab::LuminaDeviceManagerTab()
     });
 }
 
-LuminaDeviceManagerTab::~LuminaDeviceManagerTab()
+LuminaDeviceManagerViewModel::~LuminaDeviceManagerViewModel()
 {
 }
 
-void LuminaDeviceManagerTab::Render()
+void LuminaDeviceManagerViewModel::Render()
 {
     m_DeviceManager.Tick();
     if (ImGui::BeginTabBar("DeviceManagerTabs"))
@@ -41,16 +36,11 @@ void LuminaDeviceManagerTab::Render()
             RenderDeviceControlTab();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Add Device Manually"))
-        {
-            RenderDeviceForm();
-            ImGui::EndTabItem();
-        }
         ImGui::EndTabBar();
     }
 }
 
-void LuminaDeviceManagerTab::RenderDeviceDiscoveryTab()
+void LuminaDeviceManagerViewModel::RenderDeviceDiscoveryTab()
 {
     ImGui::Text("Bluetooth Device Discovery");
     ImGui::Separator();
@@ -81,7 +71,7 @@ void LuminaDeviceManagerTab::RenderDeviceDiscoveryTab()
     ImGui::Separator();
 }
 
-void LuminaDeviceManagerTab::RenderDeviceControlTab()
+void LuminaDeviceManagerViewModel::RenderDeviceControlTab()
 {
     ImGui::Text("Device Control Panel");
     ImGui::Separator();
@@ -122,7 +112,7 @@ void LuminaDeviceManagerTab::RenderDeviceControlTab()
     }
 }
 
-void LuminaDeviceManagerTab::RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title)
+void LuminaDeviceManagerViewModel::RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title)
 {
     ImGui::Text("%s:", title);
     ImGui::BeginChild(title, ImVec2(0, 200), true);
@@ -200,7 +190,7 @@ void LuminaDeviceManagerTab::RenderDeviceList(const std::vector<Lumina::Bluetoot
     ImGui::EndChild();
 }
 
-void LuminaDeviceManagerTab::RenderDeviceDetails(const Lumina::BluetoothDevice& device)
+void LuminaDeviceManagerViewModel::RenderDeviceDetails(const Lumina::BluetoothDevice& device)
 {
     ImGui::Text("Device Details");
     ImGui::Separator();
@@ -217,7 +207,7 @@ void LuminaDeviceManagerTab::RenderDeviceDetails(const Lumina::BluetoothDevice& 
     RenderDeviceActions(device);
 }
 
-void LuminaDeviceManagerTab::RenderDeviceActions(const Lumina::BluetoothDevice& device)
+void LuminaDeviceManagerViewModel::RenderDeviceActions(const Lumina::BluetoothDevice& device)
 {
     ImGui::Text("Actions:");
     
@@ -243,7 +233,7 @@ void LuminaDeviceManagerTab::RenderDeviceActions(const Lumina::BluetoothDevice& 
     }
 }
 
-void LuminaDeviceManagerTab::RenderScanControls()
+void LuminaDeviceManagerViewModel::RenderScanControls()
 {
     m_DeviceManager.UpdateScanState();
 
@@ -264,64 +254,28 @@ void LuminaDeviceManagerTab::RenderScanControls()
     }
 }
 
-void LuminaDeviceManagerTab::RenderDeviceForm()
-{
-    ImGui::Text("Add New Device:");
-    ImGui::Separator();
-    
-    ImGui::InputText("Device Name", m_DeviceNameBuffer, sizeof(m_DeviceNameBuffer));
-    ImGui::InputText("Device Address", m_DeviceAddressBuffer, sizeof(m_DeviceAddressBuffer));
-    ImGui::InputText("Device Type", m_DeviceTypeBuffer, sizeof(m_DeviceTypeBuffer));
-    
-    if (ImGui::Button("Add Device", ImVec2(120, 0)))
-    {
-        OnAddDevice();
-    }
-}
-
-void LuminaDeviceManagerTab::OnDeviceSelected(const std::string& deviceAddress)
+void LuminaDeviceManagerViewModel::OnDeviceSelected(const std::string& deviceAddress)
 {
     m_SelectedDeviceAddress = deviceAddress;
     m_ShowDeviceDetails = true;
 }
 
-void LuminaDeviceManagerTab::OnConnectDevice(const std::string& deviceAddress)
+void LuminaDeviceManagerViewModel::OnConnectDevice(const std::string& deviceAddress)
 {
     m_DeviceManager.ConnectToDevice(deviceAddress);
 }
 
-void LuminaDeviceManagerTab::OnDisconnectDevice(const std::string& deviceAddress)
+void LuminaDeviceManagerViewModel::OnDisconnectDevice(const std::string& deviceAddress)
 {
     m_DeviceManager.DisconnectFromDevice(deviceAddress);
 }
 
-void LuminaDeviceManagerTab::OnRemoveDevice(const std::string& deviceAddress)
+void LuminaDeviceManagerViewModel::OnRemoveDevice(const std::string& deviceAddress)
 {
     m_DeviceManager.RemoveDevice(deviceAddress);
     if (m_SelectedDeviceAddress == deviceAddress)
     {
         m_SelectedDeviceAddress = "";
         m_ShowDeviceDetails = false;
-    }
-}
-
-void LuminaDeviceManagerTab::OnAddDevice()
-{
-    if (strlen(m_DeviceNameBuffer) > 0 && strlen(m_DeviceAddressBuffer) > 0)
-    {
-        Lumina::BluetoothDevice newDevice;
-        newDevice.name = m_DeviceNameBuffer;
-        newDevice.address = m_DeviceAddressBuffer;
-        newDevice.deviceType = strlen(m_DeviceTypeBuffer) > 0 ? m_DeviceTypeBuffer : "Unknown";
-        newDevice.isConnected = false;
-        newDevice.isPaired = false;
-        newDevice.signalStrength = -50; // Default signal strength
-        
-        m_DeviceManager.AddDevice(newDevice);
-        
-        // Clear form
-        memset(m_DeviceNameBuffer, 0, sizeof(m_DeviceNameBuffer));
-        memset(m_DeviceAddressBuffer, 0, sizeof(m_DeviceAddressBuffer));
-        memset(m_DeviceTypeBuffer, 0, sizeof(m_DeviceTypeBuffer));
     }
 } 

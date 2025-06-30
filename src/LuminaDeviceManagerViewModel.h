@@ -2,11 +2,11 @@
 #include "LuminaDeviceManager.h"
 #include <string>
 
-class LuminaDeviceManagerTab
+class LuminaDeviceManagerViewModel
 {
 public:
-    LuminaDeviceManagerTab();
-    ~LuminaDeviceManagerTab();
+    LuminaDeviceManagerViewModel();
+    ~LuminaDeviceManagerViewModel();
 
     void Render();
 
@@ -15,9 +15,6 @@ private:
 
     bool m_ShowDeviceDetails;
     std::string m_SelectedDeviceAddress;
-    char m_DeviceNameBuffer[256];
-    char m_DeviceAddressBuffer[256];
-    char m_DeviceTypeBuffer[256];
     
     // UI helper methods
     void RenderDeviceDiscoveryTab();
@@ -26,12 +23,10 @@ private:
     void RenderDeviceDetails(const Lumina::BluetoothDevice& device);
     void RenderDeviceActions(const Lumina::BluetoothDevice& device);
     void RenderScanControls();
-    void RenderDeviceForm();
     
     // UI event handlers
     void OnDeviceSelected(const std::string& deviceAddress);
     void OnConnectDevice(const std::string& deviceAddress);
     void OnDisconnectDevice(const std::string& deviceAddress);
     void OnRemoveDevice(const std::string& deviceAddress);
-    void OnAddDevice();
 }; 
