@@ -1,6 +1,7 @@
 #define NOMINMAX
 #include <algorithm>
 #include <imgui.h>
+#include <Windows.h>
 #include "LuminaHelper.h"
 
 namespace LuminaHelper
@@ -31,6 +32,19 @@ namespace LuminaHelper
     {
         static float padding = 6.0f;
         return ImGui::GetFontSize() + padding;
+    }
+
+    std::string WideStringToUtf8(const std::wstring& wstr)
+    {
+        if (wstr.empty())
+        {
+            return {};
+        }
+
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.size(), nullptr, 0, nullptr, nullptr);
+        std::string strTo(size_needed, 0);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.size(), &strTo[0], size_needed, nullptr, nullptr);
+        return strTo;
     }
 }
 
