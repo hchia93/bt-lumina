@@ -5,13 +5,10 @@
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include "LuminaActionDiscoverDevice.h"
+#include "LuminaDevice.h"
 
 LuminaActionDiscoverDevice::LuminaActionDiscoverDevice()
-    : m_IsScanning(false)
-    , m_ScanTimeoutSeconds(10)
-    , m_LastScanTime(std::chrono::steady_clock::now())
-    , m_ScanInProgress(false)
-    , m_ScanStartTime(std::chrono::steady_clock::now())
+    : m_Requested(false)
     , m_CanRenderDeviceList(true)
 {
     try
@@ -23,114 +20,94 @@ LuminaActionDiscoverDevice::LuminaActionDiscoverDevice()
     }
 }
 
-LuminaActionDiscoverDevice::~LuminaActionDiscoverDevice()
+void LuminaActionDiscoverDevice::RequestScan()
 {
-    if (m_IsScanning) StopScan();
-}
-
-void LuminaActionDiscoverDevice::StartScan()
-{
-    if (!m_IsScanning)
+    if (!m_Requested)
     {
-        m_IsScanning = true;
-        ScanAsync();
+        ScanDeviceAsync_Internal();
     }
 }
 
-void LuminaActionDiscoverDevice::ScanAsync()
+void LuminaActionDiscoverDevice::ScanDeviceAsync_Internal()
 {
+    m_Requested = true;
+
     try
     {
         auto selector = winrt::Windows::Devices::Bluetooth::BluetoothDevice::GetDeviceSelector();
         auto asyncOp = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(selector);
         asyncOp.Completed([this](auto const& op, auto const& status)
-        {
-            if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
             {
-                try
+                std::vector<winrt::Windows::Devices::Enumeration::DeviceInformation> discovered;
+                winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Devices::Enumeration::DeviceInformation> devices;
+                switch (status)
                 {
-                    std::vector<winrt::Windows::Devices::Enumeration::DeviceInformation> discovered;
-                    winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Devices::Enumeration::DeviceInformation> devices = op.GetResults();
-                    for (const auto& device : devices)
+                case winrt::Windows::Foundation::AsyncStatus::Completed:
+                    try
                     {
-                        discovered.push_back(device);
+                        devices = op.GetResults();
+                        for (const auto& device : devices)
+                        {
+                            discovered.push_back(device);
+                        }
+                        if (m_OnDevicesDiscovered)
+                        {
+                            m_OnDevicesDiscovered(discovered);
+                            m_Requested = false;
+                        }
+
+                        if (devices.Size() == 0);
+                        {
+                            m_OnErrorMessageGenerated("No device found.");
+                        }
                     }
-                    if (m_OnDevicesDiscovered)
+                    catch (...)
                     {
-                        m_OnDevicesDiscovered(discovered);
+                        if (m_OnErrorMessageGenerated)
+                        {
+                            m_OnErrorMessageGenerated("Failed to get device discovery results.");
+                        }
                     }
+                    m_Requested = false;
+                    break;
+                case winrt::Windows::Foundation::AsyncStatus::Canceled:
+                    if (m_OnErrorMessageGenerated)
+                    {
+                        m_OnErrorMessageGenerated("Device discovery was canceled.");
+                    }
+                    m_Requested = false;
+                    break;
+                case winrt::Windows::Foundation::AsyncStatus::Error:
+                    if (m_OnErrorMessageGenerated)
+                    {
+                        m_OnErrorMessageGenerated("Device discovery failed.");
+                    }
+                    m_Requested = false;
+                    break;
+                case winrt::Windows::Foundation::AsyncStatus::Started:
+                    break;
+                default:
+                    m_Requested = false;
+                    break;
                 }
-                catch (...)
-                {
-                }
-            }
-            m_IsScanning = false;
-        });
+            });
     }
     catch (...)
     {
-        m_IsScanning = false;
-    }
-}
-
-void LuminaActionDiscoverDevice::StopScan()
-{
-    m_IsScanning = false;
-}
-
-bool LuminaActionDiscoverDevice::GetIsScanning() const {
-    return m_IsScanning;
-}
-
-void LuminaActionDiscoverDevice::Tick()
-{
-    auto now = std::chrono::steady_clock::now();
-    if (m_IsScanning && std::chrono::duration_cast<std::chrono::seconds>(now - m_LastScanTime).count() >= 1)
-    {
-        m_LastScanTime = now;
-        ScanAsync();
-    }
-}
-
-void LuminaActionDiscoverDevice::StartScanWithGate()
-{
-    if (!m_ScanInProgress)
-    {
-        m_ScanInProgress = true;
-        m_ScanStartTime = std::chrono::steady_clock::now();
-        m_CanRenderDeviceList = false;
-        if (m_OnBeginScanCooldown) { m_OnBeginScanCooldown(); }
-    }
-}
-
-bool LuminaActionDiscoverDevice::IsScanInProgress() const
-{
-    return m_ScanInProgress;
-}
-
-float LuminaActionDiscoverDevice::GetScanProgress() const
-{
-    if (!m_ScanInProgress)
-    {
-        return 0.0f;
-    }
-    auto now = std::chrono::steady_clock::now();
-    float elapsed = std::chrono::duration<float>(now - m_ScanStartTime).count();
-    return std::min(elapsed / m_ScanCooldown, 1.0f);
-}
-
-void LuminaActionDiscoverDevice::UpdateScanState()
-{
-    if (m_ScanInProgress)
-    {
-        auto now = std::chrono::steady_clock::now();
-        float elapsed = std::chrono::duration<float>(now - m_ScanStartTime).count();
-        if (elapsed >= m_ScanCooldown)
+        if (m_OnErrorMessageGenerated)
         {
-            m_ScanInProgress = false;
-            StopScan();
-            m_CanRenderDeviceList = true;
-            if (m_OnCompleteScanCooldown) { m_OnCompleteScanCooldown(); }
+            m_OnErrorMessageGenerated("Device discovery threw an exception.");
         }
+        m_Requested = false;
     }
-} 
+}
+
+bool LuminaActionDiscoverDevice::GetIsScanRequested() const
+{
+    return m_Requested;
+}
+
+void LuminaActionDiscoverDevice::HandleOnDevicesDiscovered(const std::function<void(const std::vector<winrt::Windows::Devices::Enumeration::DeviceInformation>&)>& callback)
+{
+    m_OnDevicesDiscovered = callback;
+}

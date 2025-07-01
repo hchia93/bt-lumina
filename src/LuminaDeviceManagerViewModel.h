@@ -6,29 +6,33 @@
 #include "LuminaHelper.h"
 #include "LuminaActionBluetoothSwitch.h"
 #include "LuminaActionDiscoverDevice.h"
-
-// Forward declare the new class
-class LuminaActionBluetoothSwitch;
+#include "LuminaErrorMessageInfo.h"
 
 class LuminaDeviceManagerViewModel
 {
 public:
     LuminaDeviceManagerViewModel();
-    ~LuminaDeviceManagerViewModel();
 
     void Render();
+    void RaiseErrorMessage(const std::string& message);
 
 private:
     LuminaDeviceManager m_DeviceManager;
+
+    LuminaActionBluetoothSwitch m_ActionBluetoothSwitch;
+    LuminaActionDiscoverDevice m_ActionDiscoverDevice;
+
     bool m_ShowDeviceDetails;
     std::string m_SelectedDeviceAddress;
     LuminaDevicePropertyViewModel m_PropertyViewModel;
-    LuminaActionBluetoothSwitch m_BluetoothSwitch;
-    LuminaActionDiscoverDevice m_DiscoverDevice;
-    
+
+    LuminaErrorMessageInfo m_ErrorMessageInfo;
+
+    void BindActionOnDeviceDiscovered();
+
     // UI helper methods
-    void RenderDeviceDiscoveryTab();
-    void RenderDeviceList(const std::vector<Lumina::BluetoothDevice>& devices, const char* title);
+    void RenderDeviceTable();
+    void RenderDeviceEntry(const Lumina::BluetoothDevice& devices);
     void RenderDeviceDetails(const Lumina::BluetoothDevice& device);
     void RenderDeviceActions(const Lumina::BluetoothDevice& device);
     void RenderActionList();

@@ -33,3 +33,4 @@ namespace LuminaHelper
         return ImGui::GetFontSize() + padding;
     }
 }
+

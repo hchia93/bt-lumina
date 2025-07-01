@@ -1,24 +1,23 @@
+#include "LuminaErrorMessageInfo.h"
 #include <imgui.h>
-#include "LuminaAbout.h"
 
-
-
-void LuminaAbout::Show()
+void LuminaErrorMessageInfo::Show(const std::string& message)
 {
+    m_Message = message;
     m_Visible = true;
 }
 
-void LuminaAbout::Hide()
+void LuminaErrorMessageInfo::Hide()
 {
     m_Visible = false;
 }
 
-bool LuminaAbout::IsVisible() const
+bool LuminaErrorMessageInfo::IsVisible() const
 {
     return m_Visible;
 }
 
-void LuminaAbout::Render()
+void LuminaErrorMessageInfo::Render()
 {
     if (!m_Visible)
     {
@@ -26,10 +25,14 @@ void LuminaAbout::Render()
     }
 
     float windowWidth = 320.0f;
+    float textRegionWidth = windowWidth - 40.0f; // 20px padding on each side
+
     float heightPadding = 40.0f; // top + bottom
     float frameHeight = ImGui::GetFrameHeight();
-    float lineHeight = ImGui::GetTextLineHeightWithSpacing();
-    float textHeight = lineHeight * 2.0f;
+
+    ImVec2 textSize = ImGui::CalcTextSize(m_Message.c_str(), nullptr, false, textRegionWidth);
+    float textHeight = textSize.y;
+
     float totalHeight = (frameHeight * 2) + textHeight + (heightPadding * 2);
 
     ImVec2 center = ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
@@ -40,41 +43,32 @@ void LuminaAbout::Render()
     ImGui::PushStyleColor(ImGuiCol_TitleBg, lightTitle);
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, lightTitle);
 
-    if (ImGui::BeginPopupModal("About", nullptr,
+    ImGui::OpenPopup("Error");
+    if (ImGui::BeginPopupModal("Error", nullptr,
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoMove))
     {
-        ImGui::Dummy(ImVec2(0.0f, 5.0f));
-        // Center the first line
-        float text1Width = ImGui::CalcTextSize("Project Lumina").x;
+        // Center the error message text
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+        float textWidth = ImGui::CalcTextSize(m_Message.c_str()).x;
         float availWidth = ImGui::GetWindowSize().x;
-        float text1StartX = (availWidth - text1Width) * 0.5f;
-        if (text1StartX > 0)
+        float textStartX = (availWidth - textWidth) * 0.5f;
+        if (textStartX > 0)
         {
-            ImGui::SetCursorPosX(text1StartX);
+            ImGui::SetCursorPosX(textStartX);
         }
-        
-        ImGui::Text("Project Lumina");
-        // Center the second line
-        float text2Width = ImGui::CalcTextSize("GitHub: hchia93/bt-lumina").x;
-        float text2StartX = (availWidth - text2Width) * 0.5f;
-        if (text2StartX > 0)
-        {
-            ImGui::SetCursorPosX(text2StartX);
-        }
-        ImGui::Text("GitHub: hchia93/bt-lumina");
-        ImGui::Dummy(ImVec2(0.0f, 5.0f));
+        ImGui::TextWrapped("%s", m_Message.c_str());
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
-        float buttonWidth = ImGui::CalcTextSize("Back").x + 40.0f;
+        float buttonWidth = ImGui::CalcTextSize("OK").x + 40.0f;
         ImGui::SetCursorPosX((ImGui::GetWindowSize().x - buttonWidth) * 0.5f);
 
-        if (ImGui::Button("Back", ImVec2(buttonWidth, 0)))
+        if (ImGui::Button("OK", ImVec2(buttonWidth, 0)))
         {
             ImGui::CloseCurrentPopup();
             m_Visible = false;
         }
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
         ImGui::EndPopup();
     }
     ImGui::PopStyleColor(2);

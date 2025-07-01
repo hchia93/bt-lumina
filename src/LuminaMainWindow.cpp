@@ -1,10 +1,7 @@
 #include <imgui.h>
 #include "LuminaMainWindow.h"
+#include "LuminaHelper.h"
 
-namespace LuminaConfig {
-    constexpr int WindowWidth = 1200;
-    constexpr int WindowHeight = 720;
-}
 
 void LuminaMainWindow::ApplyImGuiStyle()
 {
@@ -98,7 +95,7 @@ void LuminaMainWindow::ApplyImGuiStyle()
 
 void LuminaMainWindow::Render()
 {
-	if (m_About.CanShow())
+	if (m_About.IsVisible())
 	{
 		ImGui::OpenPopup("About");
 	}

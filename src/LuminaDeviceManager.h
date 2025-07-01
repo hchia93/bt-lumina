@@ -8,19 +8,7 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Enumeration.h>
-
-namespace Lumina
-{
-    struct BluetoothDevice
-    {
-        std::string name;
-        std::string address;
-        bool isConnected;
-        bool isPaired;
-        int signalStrength; // RSSI value. Not available in this API
-        std::string deviceType; // Ideally should be enum after knowing all possible device type
-    };
-}
+#include "LuminaDevice.h"
 
 class LuminaDeviceManager
 {
