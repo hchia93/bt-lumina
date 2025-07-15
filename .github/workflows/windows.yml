@@ -3,12 +3,12 @@ name: Windows
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, btWatcher-impl ]
     paths-ignore:
       - 'README.md'
       - '**/*.md'
   pull_request:
-    branches: [ main ]
+    branches: [ main, btWatcher-impl ]
     paths-ignore:
       - 'README.md'
       - '**/*.md'
